@@ -1,0 +1,80 @@
+<!doctype html>
+    <html>
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="flex w-screen h-screen justify-center items-center">
+        <div class="flex-col space-y-2 justify-center items-center">
+            <p>Login</p>
+            <div id="metamask-text"></div>
+            <button
+                id="loginButton" 
+                class=" mt-5 button h-20 bg-purple-500 rounded-md p-4">
+                Connect with metamask
+            </button>
+            <p id='userWallet' class='text-lg text-gray-600 my-2'></p>
+        </div>
+        <script>
+            window.userWalletAddress = null;
+            let loginButton = document.getElementById("loginButton");
+            let userWallet = document.getElementById("userWallet");
+            let metamaskextention = document.getElementById("metamask-text");
+
+           function toogleButton(){
+                // detect if metamask is installed or not 
+                if (!window.ethereum) {
+                    metamaskextention.innerHTML = 'Please install metamask to connect your wallet'
+                    return false
+                } 
+                loginButton.classList.remove("bg-purple-500");
+                loginButton.classList.add("bg-green-500")
+                metamaskextention.innerHTML = 'Metamask è installato correttamente come estensione'
+                // click on loginButton and start extension 
+                loginButton.addEventListener('click', loginWithMetaMask())
+            }
+
+            async function loginWithMetaMask(){
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+                    .catch((e) => {
+                        console.log(e.message)
+                        return
+                    })
+                if (!accounts) { return } 
+
+                window.userWalletAddress = accounts[0]
+                userWallet.innerText = window.userWalletAddress
+                loginButton.innerText = 'Sign out of Metamask'
+
+                loginButton.removeEventListener('click', loginWithMetaMask)
+                setTimeout(() => {
+                    loginButton.addEventListener('click', signOutOfMetaMask)
+                }, 200)
+
+                let nft = ''
+
+                fetch(`https://api.etherscan.io/api?module=account&action=balance&address=${window.userWalletAddress}&tag=latest&apikey=ZV6455NI3NUU9Q5GSFRY34MCS5DW5KJSF2`)
+                .then(response => response.json())
+                .then(data => console.log(data));
+
+                
+
+            }
+                    
+                    function signOutOfMetaMask() {
+                        window.userWalletAddress = null
+                        userWallet.innerText = ''
+                        loginButton.innerText = 'Sign in with MetaMask'
+
+                        loginButton.removeEventListener('click', signOutOfMetaMask)
+                        setTimeout(() => {
+                            loginButton.addEventListener('click', loginWithMetaMask)
+                        }, 200)
+            };
+                window.addEventListener('DOMContentLoaded', (event) => {
+                        toogleButton()
+                });
+        </script>
+    </body>
+</html>
